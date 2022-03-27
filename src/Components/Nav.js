@@ -1,7 +1,11 @@
 import { Component } from "react";
 import logo from "../assets/logo.svg";
 import cart from "../assets/cart.svg";
-/**
+import Category from "./Category";
+import { gql } from "apollo-boost";
+import { graphql } from "react-apollo";
+
+/**import { ApolloClient, InMemoryCache, ApolloProvider } from '@apollo/client';
   @jsxRuntime classic
  */
 /**
@@ -9,22 +13,56 @@ import cart from "../assets/cart.svg";
  */
 import { css, jsx } from "@emotion/react";
 
+const getCategoriesQuery = gql`
+  {
+      categories {
+        name
+      }
+  }
+`
+
 class Nav extends Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      category: "all"
+    }
+  }
+  displayCategories() {
+    const data = this.props.data;
+    const active = e => {
+      e.target.classList.toggle("active");
+
+      this.setState({
+        category: e.target.attributes.name.value
+      })
+    }
+    if (data.loading) {
+      return (<li>Loading...</li>)
+    } else {
+      return data.categories.map(category => {
+        return (
+          <li onClick={active} name={category.name} key={category.name}>{category.name}</li>
+        )
+      })
+    }
+  }
   render() {
     return (
-      <nav
-        css={css`
+      <div>
+        <nav
+          css={css`
           display: flex;
           margin-top: 30px;
         `}
-      >
-        <div
-          css={css`
+        >
+          <div
+            css={css`
             flex-grow: 1;
           `}
-        >
-          <ul
-            css={css`
+          >
+            <ul
+              css={css`
               list-style-type: none;
               text-align: center;
               & li {
@@ -41,62 +79,69 @@ class Nav extends Component {
                   border-bottom: 1px solid #5ece7b;
                 }
               }
+              & .active {
+                color: #5ece7b;
+                border-bottom: 1px solid #5ece7b;
+              }
             `}
-          >
-            <li>Women</li>
-            <li>Men</li>
-            <li>Kids</li>
-          </ul>
-        </div>
-        <div
-          css={css`
+            >
+
+              {
+                this.displayCategories()
+              }
+            </ul>
+          </div>
+          <div
+            css={css`
             flex-grow: 3;
             align-self: center;
             text-align: center;
           `}
-        >
-          <img src={logo} alt="logo: shopping bag" />
-        </div>
-        <div
-          css={css`
+          >
+            <img src={logo} alt="logo: shopping bag" />
+          </div>
+          <div
+            css={css`
             flex-grow: 1;
           `}
-        >
-          <ul
-            css={css`
+          >
+            <ul
+              css={css`
               text-align: center;
               & li {
                 display: inline-block;
                 margin: 10px;
               }
             `}
-          >
-            <li>
-              <select
-                css={css`
+            >
+              <li>
+                <select
+                  css={css`
                   border: none;
                   background: transparent;
                   padding: 10px;
                   outline: 0;
                 `}
-              >
-                <option>$ USD</option>
-                <option>€ EUR</option>
-                <option>¥ JPY</option>
-              </select>
-            </li>
-            <li
-              css={css`
+                >
+                  <option>$ USD</option>
+                  <option>€ EUR</option>
+                  <option>¥ JPY</option>
+                </select>
+              </li>
+              <li
+                css={css`
                 padding: 10px;
               `}
-            >
-              <img src={cart} alt="cart" />
-            </li>
-          </ul>
-        </div>
-      </nav>
+              >
+                <img src={cart} alt="cart" />
+              </li>
+            </ul>
+          </div>
+        </nav>
+        <Category cat={this.state.category} />
+      </div>
     );
   }
 }
 
-export default Nav;
+export default graphql(getCategoriesQuery)(Nav);
